@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Voting {
+    address public owner;
+    mapping(string => uint) public votes;
+    mapping(address => bool) public hasVoted;
+    string[] public candidateList;
+
+    constructor(string[] memory _candidates) {
+        owner = msg.sender;
+        for (uint i = 0; i < _candidates.length; i++) {
+            require(bytes(_candidates[i]).length > 0, "Candidate name can't be empty");
+            votes[_candidates[i]] = 0;
+            candidateList.push(_candidates[i]);
+        }
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this action");
+        _;
+    }
+
+    modifier hasNotVoted() {
+        require(!hasVoted[msg.sender], "You have already voted");
+        _;
+    }
+
+    function vote(string memory candidate) public hasNotVoted {
+        require(bytes(candidate).length > 0, "Candidate name can't be empty");
+        require(votes[candidate] >= 0, "Invalid candidate");
+        votes[candidate]++;
+        hasVoted[msg.sender] = true;
+    }
+
+    function getCandidateList() public view returns (string[] memory) {
+        return candidateList;
+    }
+
+    function getVotesForCandidate(string memory candidate) public view returns (uint) {
+        require(votes[candidate] >= 0, "Invalid candidate");
+        return votes[candidate];
+    }
+
+    function getAllVotes() public view returns (string[] memory, uint[] memory) {
+        string[] memory candidateNames = new string[](3);
+        uint[] memory voteCounts = new uint[](3);
+
+        for (uint i = 0; i < candidateList.length; i++) {
+            candidateNames[i] = candidateList[i];
+            voteCounts[i] = votes[candidateList[i]];
+        }
+
+        return (candidateNames, voteCounts);
+    }
+}
