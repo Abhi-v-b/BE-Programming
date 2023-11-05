@@ -2,40 +2,40 @@
 pragma solidity ^0.8.0;
 
 contract StudentData {
-    // Structure to represent a student
     struct Student {
-        uint256 studentId;
         string name;
+        uint256 rollNumber;
         uint256 age;
     }
 
-    // Array to store student records
     Student[] public students;
+    address public owner;
 
-    // Fallback function - to accept incoming Ether
-    fallback() external payable {
-        // This function can be used to send Ether to the contract
+    constructor() {
+        owner = msg.sender;
     }
 
-    // Receive function - to accept incoming Ether
-    receive() external payable {
-        // This function can be used to receive Ether
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this operation");
+        _;
     }
 
-    // Function to add a new student
-    function addStudent(uint256 _studentId, string memory _name, uint256 _age) public {
-        students.push(Student(_studentId, _name, _age));
+    function addStudent(string memory _name, uint256 _rollNumber, uint256 _age) public onlyOwner {
+        Student memory newStudent = Student(_name, _rollNumber, _age);
+        students.push(newStudent);
     }
 
-    // Function to get the number of students
     function getStudentCount() public view returns (uint256) {
         return students.length;
     }
 
-    // Function to get student information by index
-    function getStudent(uint256 _index) public view returns (uint256, string memory, uint256) {
-        require(_index < students.length, "Index out of bounds");
-        Student memory student = students[_index];
-        return (student.studentId, student.name, student.age);
+    function getStudent(uint256 index) public view returns (string memory, uint256, uint256) {
+        require(index < students.length, "Invalid index");
+        Student memory student = students[index];
+        return (student.name, student.rollNumber, student.age);
+    }
+
+    fallback() external {
+        revert("Fallback function: This contract does not accept Ether.");
     }
 }
